@@ -12,7 +12,6 @@ pub struct DBConfigForm {
 pub struct PosConfigForm {
     pub pos_api_url: Entity<InputState>,
     pub pos_token: Entity<InputState>,
-    pub pos_type: Entity<InputState>,
     pub pos_location_code: Entity<InputState>,
     pub pos_area_code: Entity<InputState>,
     pub pos_grace_period: Entity<InputState>,

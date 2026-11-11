@@ -1,11 +1,12 @@
-use gpui_kit::{base::StyledExt, *};
 
 use crate::types::PosConfigForm;
 
-use gpui_kit::component::{
+use crate::components::Divider;
+
+use gpui_kit::{base::{StyledExt}, *,component::{
     button::{Button, ButtonVariants},
     input::{Input, InputState},
-};
+}};
 
 impl PosConfigForm {
     pub fn new(
@@ -23,17 +24,22 @@ impl PosConfigForm {
                     .placeholder("Token Akses API URL Pos")
             }),
 
-            pos_type: cx.new(|cx| {
-                InputState::new(window, cx)
-                    .placeholder("Tipe Pos")
-            }),
-
-            db_username: cx.new(|cx| {
+            pos_location_code: cx.new(|cx| {
                 InputState::new(window, cx)
                     .placeholder("Database Username")
             }),
 
-            db_password: cx.new(|cx| {
+            pos_area_code: cx.new(|cx| {
+                InputState::new(window, cx)
+                    .placeholder("Database Password")
+            }),
+
+            pos_grace_period: cx.new(|cx| {
+                InputState::new(window, cx)
+                    .placeholder("Database Password")
+            }),
+
+            pos_ping_interval: cx.new(|cx| {
                 InputState::new(window, cx)
                     .placeholder("Database Password")
             }),
@@ -72,16 +78,19 @@ impl Render for PosConfigForm {
                             .font_bold()
                             .child("Konfigurasi Aplikasi Sync Flaplock")
                     )
-                    .child("Database Host")
-                    .child(Input::new(&self.db_host))
-                    .child("Database Port")
-                    .child(Input::new(&self.db_port))
-                    .child("Database Name")
-                    .child(Input::new(&self.db_name))
-                    .child("Database Username")
-                    .child(Input::new(&self.db_username))
-                    .child("Database Password")
-                    .child(Input::new(&self.db_password))
+                    .child(Divider::new().thickness(1.0).color(0x000000))
+                    .child("API URL")
+                    .child(Input::new(&self.pos_api_url))
+                    .child("API URL Token")
+                    .child(Input::new(&self.pos_token))
+                    .child("Kode Lokasi")
+                    .child(Input::new(&self.pos_location_code))
+                    .child("Kode Area")
+                    .child(Input::new(&self.pos_area_code))
+                    .child("Grace Period")
+                    .child(Input::new(&self.pos_grace_period))
+                    .child("Ping Interval")
+                    .child(Input::new(&self.pos_ping_interval))
                     .child(
                         div()
                             .py_8()
@@ -93,17 +102,17 @@ impl Render for PosConfigForm {
                                         .primary()
                                         .on_click(cx.listener(
                                             |this, _, _, cx| {
-                                                let host = this.db_host
-                                                    .read(cx)
-                                                    .value()
-                                                    .to_string();
+                                                // let host = this.db_host
+                                                //     .read(cx)
+                                                //     .value()
+                                                //     .to_string();
             
-                                                let port = this.db_port.read(cx).value().to_string();
-                                                let name = this.db_name.read(cx).value().to_string();
-                                                let username = this.db_username.read(cx).value().to_string();
-                                                let password = this.db_password.read(cx).value().to_string();
+                                                // let port = this.db_port.read(cx).value().to_string();
+                                                // let name = this.db_name.read(cx).value().to_string();
+                                                // let username = this.db_username.read(cx).value().to_string();
+                                                // let password = this.db_password.read(cx).value().to_string();
             
-                                                cx.notify();
+                                                // cx.notify();
                                             },
                                         ))
                                 )

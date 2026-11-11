@@ -1,7 +1,8 @@
 mod types;
 mod ui;
+mod components;
 
-use gpui_kit::*;
+use gpui_kit::{base::Root, *};
 
 use crate::types::DBConfigForm;
 
@@ -30,9 +31,8 @@ fn main() {
                 },
                 cx,
                 |window, cx| {
-                    cx.new(|cx| {
-                        DBConfigForm::new(window, cx)
-                    })
+                    let view = cx.new(|cx| DBConfigForm::new(window, cx));
+                    cx.new(|cx| Root::new(view, window, cx))
                 },
             )
             .expect("Failed to open window");
