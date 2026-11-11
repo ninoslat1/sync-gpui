@@ -1,6 +1,7 @@
 mod types;
 mod ui;
 mod components;
+mod db;
 
 use gpui_kit::{base::Root, *};
 

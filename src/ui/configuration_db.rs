@@ -1,7 +1,8 @@
 
 use std::time::Duration;
 
-use crate::types::DBConfigForm;
+use crate::db::connection::test_connection;
+use crate::types::{DBConfigForm, DbConfig};
 
 use crate::components::{Divider, FieldRow};
 
@@ -126,11 +127,51 @@ impl Render for DBConfigForm {
                                         .w_full()
                                         .cursor_pointer()
                                         .on_click(cx.listener(|this, _, window, cx| {
-                                            // read values here
-                                            window.push_notification(
-                                                Notification::success("Koneksi database berhasil").title("Berhasil").autohide(true),
-                                                cx,
-                                            );
+                                            let host = this.db_host.read(cx).value().trim().to_string();
+                                            let port = this.db_port.read(cx).value().trim().to_string();
+                                            let name = this.db_name.read(cx).value().trim().to_string();
+                                            let username = this.db_username.read(cx).value().trim().to_string();
+
+                                            if host.is_empty() || username.is_empty() || username.is_empty() {
+                                                window.push_notification(
+                                                    Notification::error("Host, nama database, dan username wajib diisi")
+                                                        .title("Input tidak valid")
+                                                        .autohide(true),
+                                                    cx,
+                                                );
+                                                return;
+                                            }
+
+                                            let Ok(port) = this.db_port.read(cx).value().trim().parse::<u16>() else {
+                                                window.push_notification(
+                                                    Notification::error("Port harus berupa angka (0-65535)").title("Input tidak valid").autohide(true),
+                                                    cx,
+                                                );
+                                                return;
+                                            };
+
+                                            let cfg = DbConfig {
+                                                host,
+                                                port,
+                                                name,
+                                                username,
+                                                password: this.db_password.read(cx).value().to_string(),
+                                            };
+
+                                            cx.spawn_in(window, async move |this, cx| {
+                                                let res = cx.background_executor().spawn(async move {test_connection(&cfg)}).await;
+
+                                                let _ = this.update_in(cx, |_, window, cx| match res {
+                                                    Ok(version) => window.push_notification(
+                                                        Notification::success(format!("Terhubung (MySQL {version})")).title("Berhasil").autohide(true),
+                                                        cx,
+                                                    ),
+                                                    Err(e) => window.push_notification(
+                                                        Notification::error(e).title("Koneksi gagal").autohide(true),
+                                                        cx,
+                                                    ),
+                                                });
+                                            }).detach();
                                         })),
                                 ),
                             )
