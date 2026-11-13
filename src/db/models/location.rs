@@ -1,9 +1,8 @@
 
 use chrono::NaiveDateTime;
-use sqlx::FromRow;
 
-#[derive(Debug, Clone, FromRow)]
-pub struct Location {
+#[derive(Debug, Clone)]
+pub struct LocationModel {
     pub id: i32,
 
     pub name: String,
@@ -32,6 +31,5 @@ pub struct Location {
     pub tz: Option<String>,
     pub display_url: Option<String>,
 
-    #[sqlx(rename = "Type")]
     pub r#type: String,
 }

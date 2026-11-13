@@ -4,6 +4,7 @@ mod components;
 mod db;
 mod libs;
 mod constants;
+mod repository;
 
 use gpui_kit::{base::Root, *};
 

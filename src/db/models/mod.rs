@@ -1,3 +1,3 @@
 pub mod location;
 
-pub use location::Location;
+pub use location::LocationModel;
