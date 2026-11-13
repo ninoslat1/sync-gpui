@@ -188,7 +188,7 @@ impl Render for PosConfigForm {
                                                     MOCK_LOCATIONS.iter().enumerate().map(|(i, loc)| {
                                                         let view = view.clone();
                                                         Button::new(("loc", i))
-                                                            .label(format!("{} - {}", loc.id, loc.name))
+                                                            .label(format!("{}", loc.name))
                                                             .w_full()
                                                             .cursor_pointer()
                                                             .on_click(move |_, window, cx| {
