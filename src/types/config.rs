@@ -17,6 +17,8 @@ pub struct PosConfigForm {
     pub pos_area_code: Entity<InputState>,
     pub pos_grace_period: Entity<InputState>,
     pub pos_ping_interval: Entity<InputState>,
+    pub location_id: Option<i32>,
+    pub area_id: Option<i32>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -26,4 +28,14 @@ pub struct StoredDbConfig {
     // pub name: String,
     pub username: String,
     pub password: String,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct StoredPosConfig {
+    pub api_url: String,
+    pub token: String,
+    pub location_code: Option<i32>,
+    pub area_code: Option<i32>,
+    pub grace_period: Option<i32>,
+    pub ping_interval: Option<i32>
 }

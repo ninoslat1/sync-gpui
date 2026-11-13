@@ -4,7 +4,7 @@ use crate::libs::keyring::save_config;
 use crate::types::{DBConfigForm, DbConfig};
 
 use crate::components::{Divider, FieldRow};
-use crate::constants::ui_settings::{FORM_WINDOW_SIZE};
+use crate::constants::ui_settings::{BG_WHITE_WINDOW, FORM_WINDOW_SIZE};
 
 use gpui_kit::component::WindowExt;
 use gpui_kit::component::notification::Notification;
@@ -12,6 +12,7 @@ use gpui_kit::{base::{StyledExt}, component::{
     button::{Button, ButtonVariants},
     input::{Input, InputState},
 }, *};
+use regex::Regex;
 
 pub struct DbConfigSaved;
 
@@ -30,7 +31,7 @@ impl DBConfigForm {
             db_port: cx.new(|cx| {
                 InputState::new(window, cx)
                     .placeholder("Harap input port database")
-                    .pattern(regex::Regex::new(r"^\d*$").unwrap())
+                    .pattern(Regex::new(r"^\d*$").unwrap())
                     .default_value("3306")
                     
             }),
@@ -117,7 +118,7 @@ impl Render for DBConfigForm {
                     .flex_col()
                     .gap_3()
                     .p_6()
-                    .bg(rgb(0xffffff))
+                    .bg(rgb(BG_WHITE_WINDOW))
                     .border_1()
                     .border_color(rgb(0xe4e4e7))
                     .rounded_xl()
