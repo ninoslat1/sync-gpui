@@ -8,7 +8,7 @@ impl DbConfig {
         OptsBuilder::new()
             .ip_or_hostname(Some(self.host.clone()))
             .tcp_port(self.port)
-            .db_name(Some(self.name.clone()))
+            // .db_name(Some(self.name.clone()))
             .user(Some(self.username.clone()))
             .pass(Some(self.password.clone()))
             .tcp_connect_timeout(Some(Duration::from_secs(5)))

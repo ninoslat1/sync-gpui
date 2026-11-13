@@ -1,17 +1,19 @@
 
-use std::time::Duration;
-
 use crate::db::connection::test_connection;
+use crate::libs::keyring::save_config;
 use crate::types::{DBConfigForm, DbConfig};
 
 use crate::components::{Divider, FieldRow};
+use crate::constants::ui_settings::{FORM_WINDOW_SIZE};
 
 use gpui_kit::component::WindowExt;
 use gpui_kit::component::notification::Notification;
-use gpui_kit::{base::{StyledExt, Root}, component::{
+use gpui_kit::{base::{StyledExt}, component::{
     button::{Button, ButtonVariants},
     input::{Input, InputState},
 }, *};
+
+pub struct DbConfigSaved;
 
 impl DBConfigForm {
     pub fn new(
@@ -33,10 +35,10 @@ impl DBConfigForm {
                     
             }),
 
-            db_name: cx.new(|cx| {
-                InputState::new(window, cx)
-                    .placeholder("Harap input nama database")
-            }),
+            // db_name: cx.new(|cx| {
+            //     InputState::new(window, cx)
+            //         .placeholder("Harap input nama database")
+            // }),
 
             db_username: cx.new(|cx| {
                 InputState::new(window, cx)
@@ -50,6 +52,25 @@ impl DBConfigForm {
                     .masked(true)
             }),
         }
+    }
+
+    pub fn collect_config(&self, cx: &App) -> Result<DbConfig, String> {
+        let host = self.db_host.read(cx).value().trim().to_string();
+        // let name = self.db_name.read(cx).value().trim().to_string();
+        let username = self.db_username.read(cx).value().trim().to_string();
+        let password = self.db_password.read(cx).value().to_string();
+
+        if host.is_empty() || username.is_empty() {
+            return Err("Host, nama database, dan username wajib diisi".into());
+        }
+
+        let port = match self.db_port.read(cx).value().trim().parse::<u32>() {
+            Ok(p) if (1..=65535).contains(&p) => p as u16,
+            Ok(_) => return Err("Port harus antara 1 dan 65535".into()),
+            Err(_) => return Err("Port harus berupa angka".into()),
+        };
+
+        Ok(DbConfig { host, port, username, password })
     }
 }
 
@@ -71,7 +92,7 @@ impl Render for DBConfigForm {
             // Title, outside the card
             .child(
                 div()
-                    .w(px(560.0))
+                    .w(px(FORM_WINDOW_SIZE))
                     .flex()
                     .flex_col()
                     .gap_1()
@@ -91,7 +112,7 @@ impl Render for DBConfigForm {
             // The card
             .child(
                 div()
-                    .w(px(560.0))
+                    .w(px(FORM_WINDOW_SIZE))
                     .flex()
                     .flex_col()
                     .gap_3()
@@ -105,7 +126,7 @@ impl Render for DBConfigForm {
                     .child(Divider::new().thickness(1.0).color(0xe4e4e7))
                     .child(FieldRow::new("Host", Input::new(&self.db_host)))
                     .child(FieldRow::new("Port", Input::new(&self.db_port)))
-                    .child(FieldRow::new("Database Name", Input::new(&self.db_name)))
+                    // .child(FieldRow::new("Database", Input::new(&self.db_name)))
                     .child(div().pt_3().font_bold().child("Konfigurasi Kredensial Database"))
                     .child(Divider::new().thickness(1.0).color(0xe4e4e7))
                     .child(FieldRow::new("Username", Input::new(&self.db_username)))
@@ -127,43 +148,28 @@ impl Render for DBConfigForm {
                                         .w_full()
                                         .cursor_pointer()
                                         .on_click(cx.listener(|this, _, window, cx| {
-                                            let host = this.db_host.read(cx).value().trim().to_string();
-                                            let port = this.db_port.read(cx).value().trim().to_string();
-                                            let name = this.db_name.read(cx).value().trim().to_string();
-                                            let username = this.db_username.read(cx).value().trim().to_string();
-
-                                            if host.is_empty() || username.is_empty() || username.is_empty() {
-                                                window.push_notification(
-                                                    Notification::error("Host, nama database, dan username wajib diisi")
-                                                        .title("Input tidak valid")
-                                                        .autohide(true),
-                                                    cx,
-                                                );
-                                                return;
-                                            }
-
-                                            let Ok(port) = this.db_port.read(cx).value().trim().parse::<u16>() else {
-                                                window.push_notification(
-                                                    Notification::error("Port harus berupa angka (0-65535)").title("Input tidak valid").autohide(true),
-                                                    cx,
-                                                );
-                                                return;
-                                            };
-
-                                            let cfg = DbConfig {
-                                                host,
-                                                port,
-                                                name,
-                                                username,
-                                                password: this.db_password.read(cx).value().to_string(),
+                                            let cfg = match this.collect_config(cx) {
+                                                Ok(cfg) => cfg,
+                                                Err(msg) => {
+                                                    window.push_notification(
+                                                        Notification::error(msg).title("Input tidak valid").autohide(true),
+                                                        cx,
+                                                    );
+                                                    return;
+                                                }
                                             };
 
                                             cx.spawn_in(window, async move |this, cx| {
-                                                let res = cx.background_executor().spawn(async move {test_connection(&cfg)}).await;
+                                                let res = cx
+                                                    .background_executor()
+                                                    .spawn(async move { test_connection(&cfg) })
+                                                    .await;
 
                                                 let _ = this.update_in(cx, |_, window, cx| match res {
                                                     Ok(version) => window.push_notification(
-                                                        Notification::success(format!("Terhubung (MySQL {version})")).title("Berhasil").autohide(true),
+                                                        Notification::success(format!("Terhubung (MySQL {version})"))
+                                                            .title("Berhasil")
+                                                            .autohide(true),
                                                         cx,
                                                     ),
                                                     Err(e) => window.push_notification(
@@ -171,8 +177,9 @@ impl Render for DBConfigForm {
                                                         cx,
                                                     ),
                                                 });
-                                            }).detach();
-                                        })),
+                                            })
+                                            .detach();
+                                        }))
                                 ),
                             )
                             .child(
@@ -182,12 +189,45 @@ impl Render for DBConfigForm {
                                         .primary()
                                         .w_full()
                                         .cursor_pointer()
-                                        .on_click(cx.listener(|this, _, _, cx| {
-                                            cx.notify();
-                                        })),
+                                        .on_click(cx.listener(|this, _, window, cx| {
+                                            let cfg = match this.collect_config(cx) {
+                                                Ok(cfg) => cfg,
+                                                Err(msg) => {
+                                                    window.push_notification(
+                                                        Notification::error(msg).title("Input tidak valid").autohide(true),
+                                                        cx,
+                                                    );
+                                                    return;
+                                                }
+                                            };
+
+                                            cx.spawn_in(window, async move |this, cx| {
+                                                let res = cx
+                                                    .background_executor()
+                                                    .spawn(async move { save_config(&cfg) })
+                                                    .await;
+
+                                                let _ = this.update_in(cx, |_, window, cx| match res {
+                                                    Ok(()) => {
+                                                        window.push_notification(
+                                                            Notification::success("Konfigurasi tersimpan").title("Berhasil").autohide(true),
+                                                            cx,
+                                                        );
+                                                        cx.emit(DbConfigSaved);
+                                                    },
+                                                    Err(e) => window.push_notification(
+                                                        Notification::error(e).title("Gagal menyimpan").autohide(true),
+                                                        cx,
+                                                    ),
+                                                });
+                                            })
+                                            .detach();
+                                        }))
                                 ),
                             ),
                     ),
             )
     }
 }
+
+impl EventEmitter<DbConfigSaved> for DBConfigForm {}

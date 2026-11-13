@@ -1,5 +1,5 @@
 
-use crate::types::PosConfigForm;
+use crate::{constants::ui_settings::SHELL_WINDOW_SIZE, types::PosConfigForm};
 
 use crate::components::Divider;
 
@@ -63,8 +63,8 @@ impl Render for PosConfigForm {
             .text_color(rgb(0xffffff))
             .child(
                 div()
-                    .w(px(600.0))
-                    .h(px(600.0))
+                    .w(px(SHELL_WINDOW_SIZE))
+                    .h(px(SHELL_WINDOW_SIZE))
                     .flex()
                     .flex_col()
                     .gap_3()

@@ -1,10 +1,11 @@
 use gpui_kit::*;
 use gpui_kit::component::input::InputState;
+use serde::{Serialize, Deserialize};
 
 pub struct DBConfigForm {
     pub db_host: Entity<InputState>,
     pub db_port: Entity<InputState>,
-    pub db_name: Entity<InputState>,
+    // pub db_name: Entity<InputState>,
     pub db_username: Entity<InputState>,
     pub db_password: Entity<InputState>,
 }
@@ -16,4 +17,13 @@ pub struct PosConfigForm {
     pub pos_area_code: Entity<InputState>,
     pub pos_grace_period: Entity<InputState>,
     pub pos_ping_interval: Entity<InputState>,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct StoredDbConfig {
+    pub host: String,
+    pub port: u16,
+    // pub name: String,
+    pub username: String,
+    pub password: String,
 }
