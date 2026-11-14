@@ -2,6 +2,8 @@ use gpui_kit::*;
 use gpui_kit::component::input::InputState;
 use serde::{Serialize, Deserialize};
 
+use crate::types::Location;
+
 pub struct DBConfigForm {
     pub db_host: Entity<InputState>,
     pub db_port: Entity<InputState>,
@@ -19,6 +21,7 @@ pub struct PosConfigForm {
     pub pos_ping_interval: Entity<InputState>,
     pub location_id: Option<i32>,
     pub area_id: Option<i32>,
+    pub location_list: Vec<Location>,
 }
 
 #[derive(Serialize, Deserialize)]

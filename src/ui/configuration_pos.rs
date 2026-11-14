@@ -12,16 +12,11 @@ use gpui_kit::{base::{StyledExt}, *,component::{
 }};
 use regex::Regex;
 
-const MOCK_LOCATIONS: [Location; 3] = [
-    Location { id: 1, name: "Jakarta Pusat" },
-    Location { id: 2, name: "Bandung" },
-    Location { id: 3, name: "Surabaya" },
-];
-
 impl PosConfigForm {
     pub fn new(
         window: &mut Window,
         cx: &mut Context<Self>,
+        location_list: Vec<Location>,
     ) -> Self {
         Self {
            pos_api_url: cx.new(|cx| {
@@ -58,6 +53,7 @@ impl PosConfigForm {
 
             location_id: None,
             area_id: None,
+            location_list,
             
         }
     }
@@ -110,8 +106,8 @@ impl PosConfigForm {
 
         // Only the id is stored, so look the name up to show it
         if let Some(id) = cfg.location_code {
-            if let Some(loc) = MOCK_LOCATIONS.iter().find(|l| l.id == id) {
-                self.pos_location_code.update(cx, |s, cx| s.set_value(loc.name, window, cx));
+            if let Some(loc) = self.location_list.iter().find(|l| l.id == id) {
+                self.pos_location_code.update(cx, |s, cx| s.set_value(loc.name.clone(), window, cx));
             }
         }
 
@@ -164,6 +160,7 @@ impl Render for PosConfigForm {
                     .child("Kode Lokasi")
                     .child({
                         let view = cx.entity(); // handle to this form, so the dialog can update it
+                        let locations = self.location_list.clone();
 
                         div()
                             .flex()
@@ -177,31 +174,38 @@ impl Render for PosConfigForm {
                             )
                             .child(
                                 Button::new("pick-location")
-                                    .label("Pilih")
+                                    .label("Pilih Lokasi")
                                     .cursor_pointer()
                                     .on_click(move |_, window, cx| {
                                         let view = view.clone();
+                                        let locations = locations.clone();
                                         window.open_dialog(cx, move |dialog, _window, _cx| {
                                             let view = view.clone();
+                                             let locations = locations.clone();
+
                                             dialog.title("Pilih Lokasi").child(
                                                 div().flex().flex_col().gap_2().children(
-                                                    MOCK_LOCATIONS.iter().enumerate().map(|(i, loc)| {
+                                                    locations.into_iter().enumerate().map(|(i, loc)| {
                                                         let view = view.clone();
+
                                                         Button::new(("loc", i))
-                                                            .label(format!("{}", loc.name))
+                                                            .label(loc.name.clone())
                                                             .w_full()
                                                             .cursor_pointer()
                                                             .on_click(move |_, window, cx| {
                                                                 view.update(cx, |this, cx| {
                                                                     this.location_id = Some(loc.id);
+
                                                                     this.pos_location_code.update(cx, |s, cx| {
-                                                                        s.set_value(loc.name, window, cx);
+                                                                        s.set_value(loc.name.clone(), window, cx);
                                                                     });
+
                                                                     cx.notify();
                                                                 });
+
                                                                 window.close_dialog(cx);
                                                             })
-                                                    }),
+                                                    })
                                                 ),
                                             )
                                         });
